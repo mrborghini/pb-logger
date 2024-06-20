@@ -1,10 +1,15 @@
 import PocketBase from "pocketbase";
 
 type ErrorType = "error" | "warning" | "log";
+type ErrorMessage = {
+  type: ErrorType;
+  message: any;
+};
 
 export abstract class Logger {
   private static pb: PocketBase | null = null;
   private static application: string | null = null;
+  private static errorQueue: ErrorMessage[] = [];
 
   static async init(app: string, key: string) {
     this.pb = new PocketBase("https://errors.exploretriple.com");
@@ -19,12 +24,16 @@ export abstract class Logger {
   }
 
   private static async registerMessage(message: any, type: ErrorType) {
-    if (this.pb === null || this.application === null)
-      return console.error("Logger not registered. Missing app or key");
+    this.errorQueue.push({ message, type });
+    if (this.pb === null || this.application === null) return;
 
-    this.pb
-      .collection("errors")
-      .create({ message, application: this.application, type });
+    this.errorQueue.forEach((error) => {
+      this.pb?.collection("errors").create({
+        message: error.message,
+        application: this.application,
+        type: error.type,
+      });
+    });
   }
 
   static async log(message: any) {
