@@ -1,6 +1,6 @@
 {
   "name": "pb-logger",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A simple Pocketbase based Logger",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
