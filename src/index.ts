@@ -11,8 +11,8 @@ export abstract class Logger {
   private static application: string | null = null;
   private static errorQueue: ErrorMessage[] = [];
 
-  static async init(app: string, key: string) {
-    this.pb = new PocketBase("https://errors.exploretriple.com");
+  static async init(app: string, key: string, pocketbaseUrl: string) {
+    this.pb = new PocketBase(pocketbaseUrl);
     await this.pb.collection("users").authWithPassword(app, key);
 
     if (!this.pb.authStore.isValid) {

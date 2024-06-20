@@ -1,6 +1,6 @@
 # PB Logger
 
-This package allows for simple remote control of applications over WebRTC.
+This package allows for simple remote control of applications over WebRTC. You need to have a pocketbase environment pre-installed, and setup with a application account, and `errors` table
 
 ## Installation
 
@@ -14,7 +14,7 @@ npm i pb-logger
 
 Once the package is installed you get access to a single class: `Logger`. This class has 4 methods:
 
-- `Logger.init(app: string, key: string)`, use this to login to your Logger account
+- `Logger.init(app: string, key: string, pocketbaseUrl)`, use this to login to your Logger account, and provider access to your PB instance
 - `Logger.log(message: any)`, log any info
 - `Logger.error(message: any)`, log any error info
 - `Logger.warning(message: any)`, log any warning info
