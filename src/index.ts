@@ -37,14 +37,17 @@ export abstract class Logger {
   }
 
   static async log(message: any) {
+    console.log(message);
     return await this.registerMessage(message, "log");
   }
 
   static async error(message: any) {
+    console.error(message);
     return await this.registerMessage(message, "error");
   }
 
   static async warning(message: any) {
+    console.warn(message);
     return await this.registerMessage(message, "warning");
   }
 }
