@@ -1,39 +1,71 @@
-import PocketBase from "pocketbase";
-
 type ErrorType = "error" | "warning" | "log";
 type ErrorMessage = {
   type: ErrorType;
   message: any;
 };
 
+const post = async (url: string, data: any, headers: HeadersInit) => {
+  const response = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+  return await response.json();
+};
+
 export abstract class Logger {
-  private static pb: PocketBase | null = null;
+  private static token: string | null = null;
+  private static pocketbaseUrl: string | null = null;
   private static application: string | null = null;
   private static errorQueue: ErrorMessage[] = [];
 
-  static async init(app: string, key: string, pocketbaseUrl: string) {
-    this.pb = new PocketBase(pocketbaseUrl);
-    await this.pb.collection("users").authWithPassword(app, key);
+  static async authWithPassword(app: string, key: string) {
+    const response = await post(
+      `${this.pocketbaseUrl ?? ""}/api/collections/users/auth-with-password`,
+      { identity: app, password: key },
+      {
+        "Content-Type": "application/json",
+      }
+    );
+    this.application = response.record.id;
+    this.token = response.token;
+  }
 
-    if (!this.pb.authStore.isValid) {
-      return console.error(
-        "Logger not set up correctly. Incorrect app or key."
-      );
-    }
-    this.application = this.pb.authStore.model?.id;
+  static async postMessage(message: any, type: ErrorType) {
+    if (this.token === null || this.pocketbaseUrl === null) return;
+
+    await post(
+      `${this.pocketbaseUrl}/api/collections/errors/records`,
+      {
+        message,
+        application: this.application,
+        type,
+      },
+      {
+        "Content-Type": "application/json",
+        Authorization: this.token,
+      }
+    );
+  }
+
+  static async init(app: string, key: string, pocketbaseUrl: string) {
+    this.pocketbaseUrl = pocketbaseUrl;
+    await this.authWithPassword(app, key);
   }
 
   private static async registerMessage(message: any, type: ErrorType) {
     this.errorQueue.push({ message, type });
-    if (this.pb === null || this.application === null) return;
+    if (
+      this.token === null ||
+      this.pocketbaseUrl === null ||
+      this.application === null
+    )
+      return;
 
     this.errorQueue.forEach((error) => {
-      this.pb?.collection("errors").create({
-        message: error.message,
-        application: this.application,
-        type: error.type,
-      });
+      this.postMessage(error.message, error.type);
     });
+    this.errorQueue = [];
   }
 
   static async log(message: any) {
