@@ -4,10 +4,10 @@ type ErrorMessage = {
   message: any;
 };
 
-const post = async (url: string, data: any, headers: HeadersInit) => {
+const post = async (url: string, data: any, headers?: HeadersInit) => {
   const response = await fetch(url, {
     method: "POST",
-    headers,
+    headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   return await response.json();
@@ -22,10 +22,7 @@ export abstract class Logger {
   static async authWithPassword(app: string, key: string) {
     const response = await post(
       `${this.pocketbaseUrl ?? ""}/api/collections/users/auth-with-password`,
-      { identity: app, password: key },
-      {
-        "Content-Type": "application/json",
-      }
+      { identity: app, password: key }
     );
     this.application = response.record.id;
     this.token = response.token;
@@ -42,7 +39,6 @@ export abstract class Logger {
         type,
       },
       {
-        "Content-Type": "application/json",
         Authorization: this.token,
       }
     );
