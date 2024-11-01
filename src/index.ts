@@ -3,6 +3,12 @@ type ErrorMessage = {
   type: ErrorType;
   message: any;
 };
+enum Colors {
+  Cyan = "\x1b[96m",
+  Yellow = "\x1b[93m",
+  Red = "\x1b[91m",
+  Default = "\x1b[0m",
+}
 
 const post = async (url: string, data: any, headers?: HeadersInit) => {
   const response = await fetch(url, {
@@ -64,18 +70,22 @@ export abstract class Logger {
     this.errorQueue = [];
   }
 
+  private static formatMessage(message: any) {
+    return typeof message === 'object' ? JSON.stringify(message) : message;
+  }
+
   static async log(message: any) {
-    console.log(message);
+      console.log(`${Colors.Cyan}${Logger.formatMessage(message)}${Colors.Default}`);
     return await this.registerMessage(message, "log");
   }
 
   static async error(message: any) {
-    console.error(message);
+    console.error(`${Colors.Red}${Logger.formatMessage(message)}${Colors.Default}`);
     return await this.registerMessage(message, "error");
   }
 
   static async warning(message: any) {
-    console.warn(message);
+    console.warn(`${Colors.Yellow}${Logger.formatMessage(message)}${Colors.Default}`);
     return await this.registerMessage(message, "warning");
   }
 }
